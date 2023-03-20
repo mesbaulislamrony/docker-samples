@@ -1,0 +1,77 @@
+version: '3.8'
+services:
+  apache:
+    image: apache-server:latest
+    container_name: only-apache-server-with-php
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./src:/var/www/html/
+    ports:
+      - 8000:80
+    depends_on:
+      - mysql
+    networks:
+      - app-network
+  mysql:
+    image: mysql:latest
+    container_name: mysql
+    restart: always
+    volumes:
+      - db_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: password
+    ports:
+      - "6033:3306"
+    networks:
+      - app-network
+  phpmyadmin:
+    image: phpmyadmin
+    container_name: phpmyadmin
+    ports:
+      - '8080:80'
+    restart: always
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: password
+    depends_on:
+      - mysql
+    networks:
+      - app-network
+  redis:
+    container_name: redis
+    image: redis:7.0.9-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      app-network:
+        ipv4_address: 172.28.1.4
+  rabbitmq:
+    container_name: 'rabbitmq'
+    image: rabbitmq:3.8-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: username
+      RABBITMQ_DEFAULT_PASS: password
+      RABBITMQ_DEFAULT_VHOST: "/"
+    restart: always
+    networks:
+      app-network:
+        ipv4_address: 172.28.1.5
+
+networks:
+  app-network:
+    ipam:
+        driver: default
+        config:
+          - subnet: 172.28.0.0/16
+volumes:
+  db_data:
+  mongo_data:
