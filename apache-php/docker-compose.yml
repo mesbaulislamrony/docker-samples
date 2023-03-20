@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  apache:
+    image: apache-server:latest
+    container_name: apache-with-php
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./src:/var/www/html/
+    ports:
+      - 8000:80
